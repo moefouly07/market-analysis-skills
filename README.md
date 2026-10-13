@@ -14,6 +14,14 @@ Canonical source for reusable US equity, options, earnings, and market-claim ana
 
 `skills/market-claim-validator/SKILL.md` handles third-party claims, indicators, strategies, screenshots, social posts, and backtest/performance claims.
 
+`skills/market-options-analyst/references/` holds optional files loaded only when needed: data-source quirks and the answer skeleton.
+
+`evals/EVALS.md` lists regression checks to run after every change. `CHANGELOG.md` records versions.
+
+## Versions
+
+Every `SKILL.md` carries a `Version:` line. After installing or updating a skill in any product, ask it which version it sees; if it differs from GitHub, the installed copy is stale. Bump the version and the changelog with every change, then run the checks in `evals/EVALS.md`.
+
 ## Operating model
 
 GitHub is the source of truth and version-control layer. Do not assume a model automatically discovers or reads this repository merely because it exists.

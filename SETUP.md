@@ -51,6 +51,12 @@ After a skill is installed, allow ChatGPT to invoke it automatically when releva
 
 GitHub remains the canonical editable copy. Installing a skill into ChatGPT does not mean future GitHub edits automatically synchronize into every product surface unless that surface explicitly supports synchronization.
 
+## Claude projects and custom skills
+
+Use the same folders. Each skill folder (with its `SKILL.md` and any `references/`) is the unit to install. Paste `PROJECT_INSTRUCTIONS.md` into the project instructions. Check the product's current documentation for the exact upload steps, then confirm the installed version line matches GitHub.
+
+Install only these three skills. Older separately installed copies of `earnings-scanner` or `earnings-lottery-hunter` are now covered by `earnings-event-analyst` and should be removed so two versions of the same rules do not compete.
+
 ## Direct GitHub workflow
 
 When using a GitHub-connected agent rather than installed Skills, instruct it to read `PROJECT_INSTRUCTIONS.md` first, then load only the relevant `SKILL.md` for the task.

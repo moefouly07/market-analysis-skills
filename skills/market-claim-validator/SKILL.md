@@ -1,9 +1,11 @@
 ---
 name: market-claim-validator
-description: Use for trading claims, indicators, strategies, screenshots, social-media posts, market myths, backtest claims, win-rate claims, and historical-performance claims.
+description: Use for trading claims, indicators, strategies, chart patterns, screenshots, social-media posts, market myths, backtest claims, win-rate claims, and historical-performance claims. Also triggers on Arabic requests such as البوست ده صح, استراتيجية مضمونة, نسبة نجاح, المؤشر ده بيتوقع.
 ---
 
 # Market Claim Validator
+
+Version: 1.1.0 (2026-10-13)
 
 Treat every submitted trading claim as a hypothesis to investigate, not a conclusion to confirm or attack.
 
@@ -18,6 +20,8 @@ Mechanical facts may be checked directly.
 Empirical performance claims require data.
 
 Causal claims require stronger evidence than correlation.
+
+For a named chart pattern, first check that the pattern exists in the actual bars, then look for the historical base rate of the claimed outcome before assigning any weight to it.
 
 ## Evidence standard
 
@@ -53,7 +57,9 @@ Distinguish in-sample exploration from out-of-sample validation when possible.
 
 Include commissions, spread, slippage, and instrument-specific constraints when they materially affect results.
 
-Do not silently optimize parameters after seeing the outcome and then present the optimized result as an unbiased test.
+Do not silently optimize parameters after seeing the outcome and then present the optimized result as an unbiased test. When rules are chosen or tuned after seeing data, say so and treat that data as in-sample.
+
+Before a forward test, write the rules, the sample size, and the evaluation metric down; evaluate only after the sample is complete.
 
 For options claims, test the actual option mechanics where possible rather than substituting only the underlying stock return.
 
@@ -74,6 +80,6 @@ partially supported,
 not supported by available evidence,
 or insufficient evidence to determine.
 
-Explain the reason without hype, ridicule, or personal judgment.
+Explain the reason without hype, ridicule, or personal judgment. Evaluate the content on the data alone and never attribute the post's stance to the user.
 
 Inherit all project-level data-integrity and output-format rules.

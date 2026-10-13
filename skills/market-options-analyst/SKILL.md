@@ -1,101 +1,104 @@
 ---
 name: market-options-analyst
-description: Use for US stock or ETF analysis, technical setups, support and resistance, volatility, listed-options contracts, trade scenarios, macro drivers, and cross-position correlation.
+description: Use for US stock or ETF analysis, technical setups, support and resistance, volatility, listed-options contracts, short-hold option scalps, trade scenarios, macro drivers, and cross-position correlation. Also triggers on Arabic requests such as سهم, أوبشن, كول, بوت, عقد, دعم ومقاومة, سيناريو, اسكالب.
 ---
 
 # Market & Options Analyst
 
-Analyze the underlying first, then the option contract.
+Version: 1.1.0 (2026-10-13)
+
+Analyze the underlying first, then the option contract. A correct directional thesis is not enough: the actual contract, timing, liquidity, volatility, and execution must make the trade coherent.
 
 ## Market state
 
-Establish the current market state, price state, and material catalysts before reaching a conclusion.
+Establish the current ET time, session, current underlying price, previous official regular-session close, and material catalysts before any conclusion. Check whether a catalyst has already fired and is priced in before treating it as an upcoming edge.
 
-When data permits, confirm structure across relevant intraday, daily, and weekly timeframes. Never base a conclusion on one candle.
+Confirm structure across relevant intraday, daily, and weekly timeframes when data permits. Never base a conclusion on one candle.
 
-Compare the instrument with its sector, important peers, and broad index when that comparison materially changes the interpretation.
+Compare the instrument with its sector, important peers, and broad index when that changes the interpretation. Classify price action (continuation, new trend, relief rally, short covering, mean reversion, breakout, failed breakout, accumulation, distribution) only when the data supports it.
 
-Classify price action only when supported by evidence. Possible classifications include continuation, new trend, relief rally, short covering, mean reversion, breakout, failed breakout, accumulation, and distribution.
+Treat support, resistance, Fibonacci, and trendlines as decision zones, not predictions. Before using a named chart pattern, verify it exists in the actual bars and state the historical base rate of the claimed outcome if you rely on it; otherwise say the base rate is unknown.
 
-Treat support, resistance, Fibonacci, and similar levels as decision zones rather than predictions.
-
-For breakouts, evaluate relative volume when appropriate. Low or ordinary volume weakens confirmation but does not automatically invalidate the move.
+For intraday breakouts, compare volume with a same-time-of-day baseline when available. Ordinary relative volume weakens confirmation but does not invalidate the move. Venue-limited intraday feeds undercount volume; use them for timing, not volume analysis.
 
 ## Technical calculations
 
-When sufficient raw bars are available, calculate rather than blindly copy:
+Calculate from raw completed bars rather than copying tool output; use tool indicators only as a cross-check.
 
-ATR14 using Wilder's method.
-RSI14 using Wilder's method.
-SMA20, SMA50, and SMA200 only when enough completed bars exist.
-20-session close-to-close realized volatility when relevant.
+```text
+ATR14, RSI14   Wilder: seed = simple mean of the first 14 values, then (prev x 13 + new) / 14
+SMA20/50/200   only when enough completed bars exist
+Realized vol   stdev of daily log returns over 20 sessions x sqrt(252), unless stated otherwise
+```
 
-State the timeframe and use completed bars only. Do not invent unavailable history or volatility baselines.
+State the timeframe and bar count when they matter. Never treat an unfinished candle as complete. Discard interpolated or zero-volume placeholder bars and replace them from another source. Report ATR in price terms and as a percentage of price.
 
-Report ATR in price terms and as a percentage of the underlying when volatility matters.
+## Options contract
 
-## Options
+Evaluate the actual contract with reliably available values: type, strike, expiry, calendar DTE, bid, ask, mark, spread, open interest, volume, delta, gamma, theta, vega, IV. Never invent missing fields. State whether Greeks and IV are source-provided or model-derived.
 
-When options are involved, evaluate the actual contract rather than only the stock direction.
+Check quote freshness before using any bid, ask, or Greek: compare the quote timestamp with the underlying timestamp. Some brokers freeze option quotes at the 16:00 ET close; outside regular hours treat option quotes as stale unless the timestamp proves otherwise.
 
-Use reliable available data for strike, expiry, DTE, bid, ask, spread, open interest, volume, delta, gamma, theta, vega, IV, intrinsic value, extrinsic value, and expiration breakeven.
+```text
+friction %        = (ask - bid) / ask x 100
+intrinsic (call)  = max(underlying - strike, 0)
+intrinsic (put)   = max(strike - underlying, 0)
+extrinsic         = premium basis - intrinsic, floored at 0
+breakeven (call)  = strike + entry premium
+breakeven (put)   = strike - entry premium
+theta burn %/day  = |theta| / premium x 100
+```
 
-Never invent missing fields. State when Greeks or IV are source-provided versus model-derived.
+Actual fills override quotes. Without fills, use ASK entry and BID exit as the conservative case and say these are assumptions. Mark or midpoint is a reference, not executable cash. If a bid sits materially below intrinsic value, treat it first as a stale-quote or liquidity problem; never assume it is fair value, and never treat selling an in-the-money option below intrinsic as acceptable.
 
-Actual fills override quote-based assumptions.
+## Short-hold scalps
 
-Without actual fills, ASK entry and BID exit may be used as a conservative execution case. State that these are assumptions, not guaranteed fills.
+For trades meant to be held hours to a few days and exited at a target (not held to expiry):
 
-Mark or midpoint is a reference value, not guaranteed executable cash.
+```text
+required exit bid = entry ask x (1 + target %)
+```
 
-Flag stale quotes, weak liquidity, wide spreads, and mismatched timestamps between the underlying and option chain.
+Report the underlying move needed to reach that exit bid within the intended hold, using a delta-gamma estimate for small moves and fuller repricing (with explicit IV and theta assumptions) for larger moves or catalysts. Report the moves needed for +50% and +100% the same way when useful. Expiry breakeven is secondary for this style.
 
-A correct directional thesis can still be a bad option trade because of IV, theta, liquidity, expiry, contract selection, or execution.
+Flag explicitly:
 
-Expiration breakeven must use the actual or assumed entry premium.
+```text
+friction % above about 10%      round-trip cost eats a large part of a scalp target
+theta burn above about 5%/day   time works hard against the position
+open interest / volume          whether a fast exit at the bid is realistic
+```
 
-Do not assume IV remains constant through a catalyst.
+These are warnings, not automatic rejections; judge them against the target and horizon.
 
-## Option target analysis
+## Target translation
 
-Do not treat delta and gamma as a complete option-pricing model.
-
-For small local moves, a delta-gamma approximation may be used while acknowledging theta and IV effects.
-
-For event trades or large moves, prefer fuller repricing when reliable inputs and tools are available.
-
-Compare the underlying move required by the contract with ATR, recent volatility, market-implied expected move when available, DTE, technical structure, and catalysts.
-
-State whether part of the required move has already occurred.
+Delta and gamma do not fully predict option value. Never assume IV stays constant through a catalyst. Compare the required underlying move with ATR, realized volatility, the market-implied move when available, DTE, structure, and catalysts. State whether part of the move has already happened.
 
 ## Liquidity and execution
 
-Evaluate friction relative to expected payoff rather than using a universal spread threshold.
-
-Low liquidity does not automatically invalidate a thesis, but poor executable economics can invalidate the contract.
-
-If execution quality materially damages the setup, compare cleaner strikes, expiries, the underlying shares, or a relevant ETF.
+Judge friction relative to expected payoff and horizon. An achievable move does not make an option attractive if friction, theta, IV risk, expiry timing, or exit liquidity dominate. When execution quality damages the setup, compare cleaner strikes, expiries, the shares, or a related ETF.
 
 ## Macro and correlation
 
-Explain the transmission channel rather than merely listing headlines.
+Explain the transmission channel instead of listing headlines (for example, in a hawkish regime strong data can hurt equities through rate expectations). Map catalysts against expiry; if the main catalyst falls after expiry, say what the contract is actually betting on.
 
-Identify the primary macro driver only when it materially affects the setup.
+When several positions are discussed, test whether they are one factor exposure in disguise: rates, dollar, AI capex, semiconductors, commodities, oil, geopolitics, or broad risk sentiment.
 
-Map important catalysts against option expiry. If the main catalyst occurs after expiry, explain what the contract is actually betting on before it expires.
+## Frozen or pre-registered strategies
 
-When multiple positions are discussed, check whether they represent the same factor exposure in disguise, such as rates, dollar, AI capex, semiconductors, commodities, oil, geopolitics, or broad risk sentiment.
+If the user runs a frozen or pre-registered strategy on the instrument, do not add filters, levels, or rules to its decisions. Present anything extra as context only and say so.
 
 ## Decision
 
-Assess thesis, technicals, option structure, liquidity, catalyst timing, and risk-reward separately. Never average them into one meaningless score.
+Assess thesis, technicals, option structure, liquidity, catalyst timing, and risk-reward separately; never average them into one score. Label each material statement as fact, interpretation, or estimate.
 
-For directional trade analysis, provide bullish, neutral, and bearish scenarios with a falsifiable trigger, target, and invalidation.
+For directional analysis give bullish, neutral, and bearish scenarios, each with a falsifiable trigger, a target zone, and an invalidation, anchored to one primary pivot per instrument. Probability estimates are optional; when used, label them as analytical estimates, cover the whole distribution with no gaps, and sum to 100%.
 
-Use one primary pivot level per instrument.
+When the user returns to a setup analyzed earlier, score the earlier call against what happened before giving new analysis, and name any error in one line.
 
-Probability estimates are optional. Use them only when defensible. If used, label them as analytical estimates and make them sum to 100 percent.
+Before finalizing, run a consistency check: if the move looks reachable but the contract is unattractive, explain exactly why.
 
-Before finalizing, run a consistency check. If the underlying move is realistically reachable but the option setup is unattractive, explain exactly why the reachable move does not translate into an attractive trade.
+Optional references, load only when needed: `references/data-sources.md` for tool and feed quirks, `references/output-template.md` for the answer skeleton.
 
 Inherit all project-level data-integrity and output-format rules.
